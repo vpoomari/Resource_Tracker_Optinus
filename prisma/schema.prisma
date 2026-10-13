@@ -1,0 +1,322 @@
+// Prisma schema for ResourceFlow — Optinus Resource Management Tool
+// Resource Demand & Candidate Tracking Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// AUTHENTICATION & USERS
+// ============================================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  passwordHash  String
+  role          String   @default("Viewer") // Admin | Resource Manager | Recruiter | Demand Manager | Management | Viewer
+  avatarColor   String   @default("#1565D8")
+  phone         String?
+  active        Boolean  @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  demandsOwned         Demand[]               @relation("DemandOwner")
+  demandsAsRM          Demand[]               @relation("DemandRM")
+  demandsAsAM          Demand[]               @relation("DemandAM")
+  assignmentsProposed DemandResourceAssignment[]
+  notesAuthored       Note[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+  statusChanges       StatusHistory[]
+  documentsUploaded   Document[]
+
+  @@map("users")
+}
+
+// ============================================================
+// CLIENTS
+// ============================================================
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  industry    String?
+  website     String?
+  contactName String?
+  contactEmail String?
+  contactPhone String?
+  address     String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("clients")
+}
+
+// ============================================================
+// DEMANDS — open positions
+// ============================================================
+
+model Demand {
+  id                  String   @id @default(cuid())
+  demandId            String   @unique // DMD-1001
+  client              String   // client name (denormalized for fast filtering)
+  clientId            String?
+  account             String?
+  project             String?
+  positionTitle       String
+  primarySkill        String
+  secondarySkills     String? // comma separated
+  jobDescription      String?
+  minExperience       Float?
+  maxExperience       Float?
+  location            String?
+  workMode            String   @default("Onsite") // Onsite | Remote | Hybrid
+  numberOfPositions   Int      @default(1)
+  priority            String   @default("Medium") // Critical | High | Medium | Low
+  status              String   @default("New")
+  ownerName           String?
+  ownerId             String?
+  resourceManagerName String?
+  resourceManagerId   String?
+  accountManagerName  String?
+  accountManagerId    String?
+  targetClosureDate   DateTime?
+  closedAt            DateTime?
+  comments            String?
+  tags                String? // comma separated
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  owner               User?    @relation("DemandOwner", fields: [ownerId], references: [id])
+  resourceManager     User?    @relation("DemandRM", fields: [resourceManagerId], references: [id])
+  accountManager      User?    @relation("DemandAM", fields: [accountManagerId], references: [id])
+
+  assignments         DemandResourceAssignment[]
+  notes               Note[]
+  statusHistory       StatusHistory[]
+  documents           Document[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([client])
+  @@map("demands")
+}
+
+// ============================================================
+// RESOURCES / CANDIDATES
+// ============================================================
+
+model Resource {
+  id                  String   @id @default(cuid())
+  resourceId          String   @unique // RES-1001
+  candidateName       String
+  email               String?
+  phone               String?
+  currentLocation     String?
+  preferredLocation   String?
+  totalExperience     Float?
+  relevantExperience  Float?
+  primarySkill        String?
+  secondarySkills     String? // comma separated
+  technology          String?
+  currentEmployer     String?
+  currentDesignation  String?
+  noticePeriod        String?
+  availabilityDate    DateTime?
+  expectedRate        Float?
+  currency            String   @default("USD")
+  employmentType      String   @default("Full-time") // Full-time | Contract | C2H | Part-time
+  resourceType        String   @default("External") // Internal | External | Bench
+  status              String   @default("Available")
+  certifications      String?
+  education           String?
+  domainExperience    String?
+  previousClientExp   String?
+  remarks             String?
+  tags                String? // comma separated
+  atsScore            Int?     // ATS match score 0-100 against the last JD scored
+  atsScoreDate        DateTime? // when the ATS score was last computed
+  atsScoreJd          String?  // snippet of the JD the score was computed against
+  avatarColor         String   @default("#2196F3")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  assignments         DemandResourceAssignment[]
+  notes               Note[]
+  documents           Document[]
+  statusHistory       StatusHistory[]
+
+  @@index([primarySkill])
+  @@index([status])
+  @@map("resources")
+}
+
+// ============================================================
+// DEMAND-RESOURCE ASSIGNMENT — junction
+// A single resource can be proposed for multiple demands
+// ============================================================
+
+model DemandResourceAssignment {
+  id               String    @id @default(cuid())
+  assignmentId     String    @unique // ASN-1001
+  demandId         String
+  resourceId       String
+  submissionDate   DateTime  @default(now())
+  currentStage     String    @default("Profile Submitted")
+  clientFeedback   String?
+  interviewDate    DateTime?
+  interviewResult  String?
+  selectionDate    DateTime?
+  rejectionDate    DateTime?
+  withdrawalDate   DateTime?
+  offeredRate      Float?
+  currency         String    @default("USD")
+  proposedById     String?
+  internalNote     String?
+  lastUpdated      DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  demand           Demand    @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  resource         Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  proposedBy       User?     @relation(fields: [proposedById], references: [id])
+
+  statusHistory    StatusHistory[]
+  notes            Note[]
+  documents        Document[]
+
+  @@unique([demandId, resourceId])
+  @@index([currentStage])
+  @@map("demand_resource_assignments")
+}
+
+// ============================================================
+// STATUS HISTORY — immutable timeline of every stage change
+// ============================================================
+
+model StatusHistory {
+  id              String   @id @default(cuid())
+  demandId        String?
+  resourceId      String?
+  assignmentId    String?
+  previousStatus  String?
+  newStatus       String
+  changedById     String?
+  changedByName   String?
+  reason          String?
+  comments        String?
+  createdAt       DateTime @default(now())
+
+  demand          Demand?  @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  resource        Resource? @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  assignment      DemandResourceAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  changedBy       User?    @relation(fields: [changedById], references: [id])
+
+  @@map("status_history")
+}
+
+// ============================================================
+// NOTES — at demand, resource, or assignment level
+// ============================================================
+
+model Note {
+  id           String   @id @default(cuid())
+  body         String
+  authorId     String?
+  demandId     String?
+  resourceId   String?
+  assignmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  author       User?    @relation(fields: [authorId], references: [id])
+  demand       Demand?  @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  resource     Resource? @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  assignment   DemandResourceAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+// ============================================================
+// DOCUMENTS — CV / Resume uploads (metadata only; content stored on disk)
+// ============================================================
+
+model Document {
+  id            String   @id @default(cuid())
+  fileName      String
+  fileType      String   // pdf | doc | docx
+  fileSize      Int
+  storagePath   String   // path on disk under /home/z/my-project/storage/cvs/
+  version       Int      @default(1)
+  demandId      String?
+  resourceId    String?
+  assignmentId  String?
+  uploadedById  String?
+  createdAt     DateTime @default(now())
+
+  demand        Demand?   @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  resource      Resource? @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  assignment    DemandResourceAssignment? @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  uploadedBy    User?     @relation(fields: [uploadedById], references: [id])
+
+  @@map("documents")
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  title     String
+  body      String
+  type      String   @default("info") // info | success | warning | error
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  userName      String?
+  action        String   // demand.create | resource.update | assignment.move ...
+  entityType    String   // Demand | Resource | Assignment | User | ...
+  entityId      String?
+  entityName    String?
+  details       String?  // JSON serialized
+  createdAt     DateTime @default(now())
+
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ============================================================
+// SETTINGS — configurable business values
+// ============================================================
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@map("settings")
+}

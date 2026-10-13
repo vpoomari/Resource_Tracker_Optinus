@@ -1,0 +1,205 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-nunito);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ============================================
+   OPTINUS — DARK BRAND THEME
+   Primary: deep navy + bright brand blue
+   Accents: teal, purple, pink, cyan, amber
+   Font: Nunito (300-800)
+   ============================================ */
+
+:root {
+  --radius: 0.625rem;
+
+  /* Dark navy backgrounds (Optinus website signature) */
+  --background: #0f0f1a;
+  --foreground: #f4f4f8;
+
+  --card: #181826;
+  --card-foreground: #f4f4f8;
+  --popover: #181826;
+  --popover-foreground: #f4f4f8;
+
+  /* Primary brand blue (Optinus signature — #0070f3 from JS bundle) */
+  --primary: #0070f3;
+  --primary-foreground: #ffffff;
+
+  /* Secondary — dark navy-blue */
+  --secondary: #1a1a2e;
+  --secondary-foreground: #e8e8f0;
+
+  /* Muted — slightly lighter navy for inactive elements */
+  --muted: #1f1f33;
+  --muted-foreground: #8e8e9e;
+
+  /* Accent — teal-cyan from Optinus logo (#00a0d0) */
+  --accent: #00a0d0;
+  --accent-foreground: #0a0a0f;
+
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #0070f3;
+
+  /* Chart colors — Optinus multi-color accent palette */
+  --chart-1: #0070f3;   /* brand blue */
+  --chart-2: #14b8a6;   /* teal */
+  --chart-3: #8b5cf6;   /* purple */
+  --chart-4: #ec4899;   /* pink/magenta */
+  --chart-5: #f59e0b;   /* amber */
+
+  /* Sidebar — even darker navy with brand-blue accents */
+  --sidebar: #0a0a14;
+  --sidebar-foreground: #f4f4f8;
+  --sidebar-primary: #0070f3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 112, 243, 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: rgba(0, 112, 243, 0.25);
+}
+
+/* Light mode is also supported but dark is the default Optinus experience */
+.dark {
+  --background: #0f0f1a;
+  --foreground: #f4f4f8;
+  --card: #181826;
+  --card-foreground: #f4f4f8;
+  --popover: #181826;
+  --popover-foreground: #f4f4f8;
+  --primary: #0070f3;
+  --primary-foreground: #ffffff;
+  --secondary: #1a1a2e;
+  --secondary-foreground: #e8e8f0;
+  --muted: #1f1f33;
+  --muted-foreground: #8e8e9e;
+  --accent: #00a0d0;
+  --accent-foreground: #0a0a0f;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: #0070f3;
+  --chart-1: #0070f3;
+  --chart-2: #14b8a6;
+  --chart-3: #8b5cf6;
+  --chart-4: #ec4899;
+  --chart-5: #f59e0b;
+  --sidebar: #0a0a14;
+  --sidebar-foreground: #f4f4f8;
+  --sidebar-primary: #0070f3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 112, 243, 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: rgba(0, 112, 243, 0.25);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Custom scrollbar (Optinus dark style) */
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(0, 112, 243, 0.3); border-radius: 4px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(0, 112, 243, 0.5); }
+
+/* Animations */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #1a1a2e 0%, #252540 50%, #1a1a2e 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fade-in-up 0.3s ease-out; }
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-right { animation: slide-in-right 0.25s ease-out; }
+
+/* Optinus brand gradient text */
+.optinus-gradient-text {
+  background: linear-gradient(135deg, #0070f3 0%, #00a0d0 50%, #14b8a6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Kanban drag states */
+.kanban-card-dragging {
+  opacity: 0.6;
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 112, 243, 0.35);
+}
+.kanban-column-drop-active {
+  background: linear-gradient(180deg, rgba(0, 112, 243, 0.08) 0%, rgba(0, 160, 208, 0.04) 100%);
+  border-color: #0070f3 !important;
+}
+
+/* Subtle glow effect for primary buttons (Optinus signature) */
+.optinus-glow {
+  box-shadow: 0 0 0 0 rgba(0, 112, 243, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+.optinus-glow:hover {
+  box-shadow: 0 0 0 4px rgba(0, 112, 243, 0.15);
+}
